@@ -24,28 +24,33 @@ struct StateCost
 {
   State state;
   int fh, f;
+  StateCost *prev;
 
-  StateCost(const State &state, int fh, int f): state(state), fh(fh), f(f) { }
+  StateCost(const State &state, int fh, int f, StateCost *prev): state(state), fh(fh), f(f), prev(prev) { }
 };
 
 struct CostComparer
 {
-  bool operator() (const StateCost &st, const StateCost &nd) const
+  bool operator() (const StateCost *st, const StateCost *nd) const
   {
-    return st.fh > nd.fh;
+    return st->fh > nd->fh;
   }
 };
 
-int h(const State &curr, const State &end);
+int h(const State &curr, const State &end)
+{
+  int max = std::max(std::abs(curr.x - end.x), std::abs(curr.y - end.y));
+  return std::ceil((-2*curr.v - 1 + sqrt(4*curr.v*curr.v + 4*curr.v + 1 + 8*max)) / 2);
+}
 
 vec_state possible_states(const State &curr)
 {
   vec_state ret;
 
   int faster = curr.v + 1;
-  for (int i = -faster; i <= faster; i += faster)
+  for (int i : { 0, -faster, faster })
   {
-    for (int j = -faster; j <= faster; j += faster)
+    for (int j : { 0, -faster, faster })
     {
       if (i == 0 && j == 0)
         continue;
@@ -56,9 +61,9 @@ vec_state possible_states(const State &curr)
   if (curr.v > 1)
   {
     int slower = curr.v - 1;
-    for (int i = -slower; i <= slower; i += slower)
+    for (int i : { 0, -slower, slower })
     {
-      for (int j = -slower; j <= slower; j += slower)
+      for (int j : { 0, -slower, slower })
       {
         if (i == 0 && j == 0)
           continue;
@@ -77,38 +82,43 @@ vec_state possible_states(const State &curr)
 void astar(const State &start, const State &end)
 {
   std::set<State> processed;
-  std::priority_queue<StateCost, std::vector<StateCost>, CostComparer> to_process;
+  std::vector<StateCost*> to_delete;
+  std::priority_queue<StateCost*, std::vector<StateCost*>, CostComparer> to_process;
 
-  StateCost curr(start, h(start, end), 0);
+  StateCost* curr(new StateCost(start, h(start, end), 0, nullptr));
 
-  // std::cout << curr.state.x << " " << curr.state.y << " " << curr.fh << " " << curr.f << "\n";
   do
   {
-    for (auto &state : possible_states(curr.state))
-      to_process.push(StateCost(state, curr.f + 1 + h(state, end), curr.f + 1));
+    for (auto &state : possible_states(curr->state))
+      to_process.push(new StateCost(state, curr->f + 1 + h(state, end), curr->f + 1, curr));
 
+    to_delete.push_back(curr);
     do
     {
       curr = to_process.top();
       to_process.pop();
-    } while (processed.find(curr.state) != processed.end());
-    // std::cout << curr.state.x << " " << curr.state.y << " " << curr.fh << " " << curr.f << "\n";
+      if (processed.find(curr->state) != processed.end())
+        delete curr;
+      else
+        break;
+    } while (true);
 
-  } while(curr.state != end);
-  std::cout << "Total cost: " << curr.f << "\n";
+  } while(curr->state != end);
+  std::cout << "Total cost: " << curr->f << "\n";
+  do
+  {
+    std::cout << curr->state.x << " " << curr->state.y << " " << curr->state.v << "\n";
+  } while ((curr = curr->prev));
+
+  for (auto p : to_delete)
+    delete p;
 }
 
 int main()
 {
   State start(0, 0, 0);
-  State end(367, 456, 0);
+  State end(10, 0, 0);
   astar(start, end);
-}
-
-int h(const State &curr, const State &end)
-{
-  int max = std::max(std::abs(curr.x - end.x), std::abs(curr.y - end.y));
-  return std::ceil((-2*curr.v - 1 + sqrt(4*curr.v*curr.v + 4*curr.v + 1 + 8*max)) / 2);
 }
 
 State::State(int x, int y, int v):
