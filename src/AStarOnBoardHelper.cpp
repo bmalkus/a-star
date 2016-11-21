@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "AStarHelper.h"
+#include "AStarOnBoardHelper.h"
 #include "State.h"
 
 AStarHelper::AStarHelper(State start, State end, int w, int h, short **fields):

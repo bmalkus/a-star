@@ -7,10 +7,11 @@
 #include <queue>
 #include <tuple>
 
-#include "AStarHelper.h"
+#include "AStarOnBoardHelper.h"
 #include "AStar.h"
 
-AStarHelper read_board(std::istream &&in)
+template <class TState>
+AStarOnBoardHelper<TState> read_board(std::istream &&in)
 {
   int w, h;
   short **fields;
@@ -33,13 +34,13 @@ AStarHelper read_board(std::istream &&in)
         end = State(i, j, 0);
     }
   }
-  return AStarHelper(start, end, w, h, fields);
+  return AStarOnBoardHelper<TState>(start, end, w, h, fields);
 }
 
 int main()
 {
-  AStarHelper helper = read_board(std::fstream("../../../a-star-tests/text_in/test03.in"));
-  AStar<State, int, AStarHelper> astar;
+  AStarOnBoardHelper<State> helper = read_board<State>(std::fstream("../../../a-star-tests/text_in/test03.in"));
+  AStar<State, int, AStarOnBoardHelper<State>> astar;
   auto track = astar.solve(helper);
   std::cout << "Track length: " << track.size() << "\n";
   for (auto s : track)
