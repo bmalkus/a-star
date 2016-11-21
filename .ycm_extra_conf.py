@@ -2,11 +2,13 @@ import os
 import ycm_core
 
 flags = [
-    '-Wall',
-    '-Wextra',
-    '-std=c++11',
-    '-x',
-    'c++',
+  '-Wall',
+  '-Wextra',
+  '-std=c++11',
+  '-x',
+  'c++',
+  '-I',
+  './include'
 ]
 
 SOURCE_EXTENSIONS = [ '.cpp', '.cxx', '.cc', '.c', '.m', '.mm' ]
