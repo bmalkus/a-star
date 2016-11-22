@@ -5,8 +5,6 @@
 #include <algorithm>
 #include <cmath>
 
-#include "State.h"
-
 template <class TState>
 class AStarOnBoardHelper;
 
@@ -19,7 +17,13 @@ int heuristic(const TState &st, const TState &nd);
 template <class TState>
 class AStarOnBoardHelper
 {
+private:
+  TState start, end;
+
 public:
+  short **fields;
+  int w, h;
+
   AStarOnBoardHelper(TState start, TState end, int w, int h, short **fields);
 
   TState get_start() const;
@@ -33,10 +37,6 @@ public:
   int cost(const TState &from, const TState &to) const;
 
 private:
-  TState start, end;
-  short **fields;
-  int w, h;
-
   bool is_legal_field(int x, int y) const;
 
   template <class T>

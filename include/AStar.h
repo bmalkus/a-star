@@ -64,6 +64,7 @@ std::vector<TState> AStar<TState, TCost, THelper>::solve(THelper &helper)
     for (auto &state : helper.possible_states(curr->state))
       to_process.push(new StateCost(state, curr->f + helper.cost(curr->state, state) + helper.heuristic(state), curr->f + helper.cost(curr->state, state), curr));
 
+    processed.insert(curr->state);
     to_delete.push_back(curr);
     do
     {
@@ -75,11 +76,13 @@ std::vector<TState> AStar<TState, TCost, THelper>::solve(THelper &helper)
       else
         break;
       if (processed.find(curr->state) == processed.end())
+      {
         break;
+      }
       else
         delete curr;
     } while (true);
-  } while(!helper.is_end(curr->state));
+  } while(!helper.is_end(curr->state) || (!to_process.empty() && to_process.top()->fh < curr->f));
 
   std::vector<TState> ret;
   do
