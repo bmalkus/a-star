@@ -82,7 +82,7 @@ std::vector<TState> AStar<TState, TCost, THelper>::solve(THelper &helper)
       else
         delete curr;
     } while (true);
-  } while(!helper.is_end(curr->state) || (!to_process.empty() && to_process.top()->fh < curr->f));
+  } while(!helper.is_end(curr->state));
 
   std::vector<TState> ret;
   do
