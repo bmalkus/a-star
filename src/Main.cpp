@@ -12,11 +12,28 @@
 #include "State.h"
 #include "State2V.h"
 
-AStarOnBoardHelper<State> read_board(std::istream &&in)
+template <class TState> // {{{ create_state
+TState create_state(int x, int y);
+
+template <>
+State create_state<State>(int x, int y)
+{
+  return State(x, y, 0);
+}
+
+template <>
+State2V create_state<State2V>(int x, int y)
+{
+  return State2V(x, y, 0, 0);
+}
+// }}}
+
+template <class TState> // {{{ read_board
+AStarOnBoardHelper<TState> read_board(std::istream &&in)
 {
   int w, h;
   short **fields;
-  State start, end;
+  TState start, end;
 
   in >> w >> h;
 
@@ -30,39 +47,37 @@ AStarOnBoardHelper<State> read_board(std::istream &&in)
     {
       in >> fields[i][j];
       if (fields[i][j] == 2)
-        start = State(i, j, 0);
+        start = create_state<TState>(i, j);
       if (fields[i][j] == 3)
-        end = State(i, j, 0);
+        end = create_state<TState>(i, j);
     }
   }
-  return AStarOnBoardHelper<State>(start, end, w, h, fields);
+  return AStarOnBoardHelper<TState>(start, end, w, h, fields);
 }
+// }}}
 
-AStarOnBoardHelper<State2V> read_board_2V(std::istream &&in)
+const char char_map[] = ".@BEX";
+
+template <class TState> // {{{ write_board_to_stdout
+void write_board_to_stdout(AStarOnBoardHelper<TState> &helper, bool fancy = false)
 {
-  int w, h;
-  short **fields;
-  State2V start, end;
+  std::cout << helper.w << " " << helper.h << "\n";
 
-  in >> w >> h;
-
-  fields = new short*[w];
-  for (int i = 0; i < w; ++i)
-    fields[i] = new short[h];
-
-  for (int j = 0; j < h; ++j)
+  for (int j = 0; j < helper.h; ++j)
   {
-    for (int i = 0; i < w; ++i)
+    for (int i = 0; i < helper.w; ++i)
     {
-      in >> fields[i][j];
-      if (fields[i][j] == 2)
-        start = State2V(i, j, 0, 0);
-      if (fields[i][j] == 3)
-        end = State2V(i, j, 0, 0);
+      if (fancy)
+        std::cout << char_map[helper.fields[i][j]] << " ";
+      else
+        std::cout << helper.fields[i][j] << " ";
     }
+    std::cout << "\n";
   }
-  return AStarOnBoardHelper<State2V>(start, end, w, h, fields);
 }
+// }}}
+
+using S = State2V;
 
 int main(int argc, char *argv[])
 {
@@ -72,24 +87,20 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  AStarOnBoardHelper<State2V> helper = read_board_2V(std::fstream(argv[1]));
-  AStar<State2V, int, AStarOnBoardHelper<State2V>> astar;
+  bool fancy = false;
+
+  if (argc > 2)
+    fancy = true;
+
+  AStarOnBoardHelper<S> helper = read_board<S>(std::fstream(argv[1]));
+  AStar<S, int, AStarOnBoardHelper<S>> astar;
   auto track = astar.solve(helper);
   std::cerr << "Track length: " << track.size() << "\n";
   for (auto s : track)
   {
     std::cerr << s.x << " " << s.y << "\n";
     if (helper.fields[s.x][s.y] == 0)
-    helper.fields[s.x][s.y] = 4;
+      helper.fields[s.x][s.y] = 4;
   }
-  std::cout << helper.w << " " << helper.h << "\n";
-
-  for (int j = 0; j < helper.h; ++j)
-  {
-    for (int i = 0; i < helper.w; ++i)
-    {
-      std::cout << helper.fields[i][j] << " ";
-    }
-    std::cout << "\n";
-  }
+  write_board_to_stdout(helper, fancy);
 }
