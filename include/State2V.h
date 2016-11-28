@@ -1,6 +1,8 @@
 #ifndef __STATE_2V_H__
 #define __STATE_2V_H__
 
+#include <ostream>
+
 struct State2V
 {
   union
@@ -17,6 +19,8 @@ struct State2V
 
   bool operator< (const State2V &nd) const;
   bool operator== (const State2V &nd) const;
+
+  friend std::ostream& operator<< (std::ostream &out, State2V &state);
 };
 
 #endif

@@ -56,15 +56,38 @@ template <>
 int heuristic<State2V>(const State2V &st, const State2V &nd)
 {
   int diff_x = nd.x - st.x;
+  int diff_y = nd.y - st.y;
   double res_x = 0.0, res_y = 0.0;
   if (diff_x > 0)
     res_x = (-2*st.Vx + 1 + sqrt(4*st.Vx*st.Vx - 4*st.Vx + 1 + 8*diff_x)) / 2;
   else if (diff_x < 0)
-    res_x = (-2*st.Vx - 1 + sqrt(4*st.Vx*st.Vx + 4*st.Vx + 1 - 8*diff_x)) / 2;
-  int diff_y = nd.y - st.y;
+    res_x = (-2*st.Vx - 1 + sqrt(4*st.Vx*st.Vx + 4*st.Vx + 1 - 8*diff_x)) / -2;
   if (diff_y > 0)
     res_y = (-2*st.Vy + 1 + sqrt(4*st.Vy*st.Vy - 4*st.Vy + 1 + 8*diff_y)) / 2;
   else if (diff_y < 0)
-    res_y = (-2*st.Vy - 1 + sqrt(4*st.Vy*st.Vy + 4*st.Vy + 1 - 8*diff_y)) / 2;
+    res_y = (-2*st.Vy - 1 + sqrt(4*st.Vy*st.Vy + 4*st.Vy + 1 - 8*diff_y)) / -2;
   return std::max(std::ceil(res_x), std::ceil(res_y));
+
+  // int speed = st.Vx + st.Vy;
+
+  // int distance = diff_x + diff_y;
+  // int distanceInSteps = speed;
+  // int steps = 1;
+
+  // while (true)
+  // {
+    // if (distance <= distanceInSteps)
+    // {
+      // return steps;
+    // }
+    // distanceInSteps = distanceInSteps + steps * 2 + speed;
+    // steps = steps + 1;
+  // }
+}
+
+std::ostream& operator<< (std::ostream &out, State2V &state)
+{
+  out << "position = " << state.x << ", " << state.y << "; "
+    << "speed = " << state.Vx << ", " << state.Vy;
+  return out;
 }

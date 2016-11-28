@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <algorithm>
 #include <set>
@@ -6,6 +7,7 @@
 #include <cmath>
 #include <queue>
 #include <tuple>
+#include <chrono>
 
 #include "AStarOnBoardHelper.h"
 #include "AStar.h"
@@ -77,7 +79,25 @@ void write_board_to_stdout(AStarOnBoardHelper<TState> &helper, bool fancy = fals
 }
 // }}}
 
+template <class TState> // {{{ print_solution
+void print_solution(std::string fname, double time, std::vector<TState> solution)
+{
+  std::cerr << "==============================================\n"
+    << "File name: " << fname.substr(fname.rfind('/') + 1) << "\n"
+    << "Execution time: " << std::fixed << std::setprecision(6) << time << " s\n"
+    << "Number of steps: " << solution.size() - 1 << "\n"
+    << "Solution:\n";
+  for (auto s : solution)
+    std::cerr << s << "\n";
+  std::cerr << "==============================================\n";
+}
+// }}}
+
 using S = State2V;
+
+using std::chrono::steady_clock;
+using std::chrono::duration;
+using std::chrono::duration_cast;
 
 int main(int argc, char *argv[])
 {
@@ -87,20 +107,21 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  bool fancy = false;
-
-  if (argc > 2)
-    fancy = true;
-
   AStarOnBoardHelper<S> helper = read_board<S>(std::fstream(argv[1]));
   AStar<S, int, AStarOnBoardHelper<S>> astar;
+
+  auto t1 = steady_clock::now();
+
   auto track = astar.solve(helper);
-  std::cerr << "Track length: " << track.size() << "\n";
+
+  auto d = duration_cast<duration<double>>(steady_clock::now() - t1);
+
+  print_solution(argv[1], d.count(), track);
+
+  int cnt = 4;
   for (auto s : track)
-  {
-    std::cerr << s.x << " " << s.y << "\n";
     if (helper.fields[s.x][s.y] == 0)
-      helper.fields[s.x][s.y] = 4;
-  }
-  write_board_to_stdout(helper, fancy);
+      helper.fields[s.x][s.y] = cnt++;
+
+  // write_board_to_stdout(helper);
 }
