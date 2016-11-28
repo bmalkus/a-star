@@ -23,6 +23,7 @@ private:
 public:
   short **fields;
   int w, h;
+  int heuristic_calls;
 
   AStarOnBoardHelper(TState start, TState end, int w, int h, short **fields);
 
@@ -32,7 +33,7 @@ public:
 
   std::vector<TState> possible_states(const TState &state) const;
 
-  int heuristic(const TState &state) const;
+  int heuristic(const TState &state);
 
   int cost(const TState &from, const TState &to) const;
 
@@ -45,7 +46,7 @@ private:
 
 template <class TState>
 AStarOnBoardHelper<TState>::AStarOnBoardHelper(TState start, TState end, int w, int h, short **fields):
-  start(start), end(end), fields(fields), w(w), h(h)
+  start(start), end(end), fields(fields), w(w), h(h), heuristic_calls(0)
 {
   // empty
 }
@@ -69,8 +70,9 @@ std::vector<TState> AStarOnBoardHelper<TState>::possible_states(const TState &st
 }
 
 template <class TState>
-int AStarOnBoardHelper<TState>::heuristic(const TState &state) const
+int AStarOnBoardHelper<TState>::heuristic(const TState &state)
 {
+  ++heuristic_calls;
   return ::heuristic<TState>(state, end);
 }
 

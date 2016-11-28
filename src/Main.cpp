@@ -79,12 +79,15 @@ void write_board_to_stdout(AStarOnBoardHelper<TState> &helper, bool fancy = fals
 }
 // }}}
 
+using S = State2V;
+
 template <class TState> // {{{ print_solution
-void print_solution(std::string fname, double time, std::vector<TState> solution)
+void print_solution(std::string fname, double time, std::vector<TState> solution, AStarOnBoardHelper<TState> &helper)
 {
   std::cerr << "==============================================\n"
     << "File name: " << fname.substr(fname.rfind('/') + 1) << "\n"
     << "Execution time: " << std::fixed << std::setprecision(6) << time << " s\n"
+    << "Heuristic function calls: " << helper.heuristic_calls << "\n"
     << "Number of steps: " << solution.size() - 1 << "\n"
     << "Solution:\n";
   for (auto s : solution)
@@ -92,8 +95,6 @@ void print_solution(std::string fname, double time, std::vector<TState> solution
   std::cerr << "==============================================\n";
 }
 // }}}
-
-using S = State2V;
 
 using std::chrono::steady_clock;
 using std::chrono::duration;
@@ -116,7 +117,7 @@ int main(int argc, char *argv[])
 
   auto d = duration_cast<duration<double>>(steady_clock::now() - t1);
 
-  print_solution(argv[1], d.count(), track);
+  print_solution(argv[1], d.count(), track, helper);
 
   int cnt = 4;
   for (auto s : track)

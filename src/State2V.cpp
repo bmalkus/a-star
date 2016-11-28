@@ -51,7 +51,6 @@ std::vector<State2V> possible_states<State2V>(const AStarOnBoardHelper<State2V> 
   return ret;
 }
 
-
 template <>
 int heuristic<State2V>(const State2V &st, const State2V &nd)
 {
