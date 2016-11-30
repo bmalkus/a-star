@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
   }
 
   AStarOnBoardHelper<S> helper = read_board<S>(std::fstream(argv[1]));
-  AStar<S, int, AStarOnBoardHelper<S>> astar;
+  AStar<S, int, AStarOnBoardHelper<S>, S::Hasher> astar;
 
   auto t1 = steady_clock::now();
 

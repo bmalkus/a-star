@@ -4,24 +4,43 @@
 #include <iostream>
 #include <vector>
 #include <set>
+#include <unordered_set>
 #include <queue>
 #include <algorithm>
 
 #include <vector>
 
+namespace AStarTypeSelector
+{
+
+template<class Hash, class TState>
+struct Select
+{
+  typedef std::unordered_set<TState, Hash> Container;
+};
+
+struct DummyHash;
+
+template<class TState>
+struct Select<DummyHash, TState>
+{
+  typedef std::set<TState> Container;
+};
+
+}
+
 template <
   class TState,
   typename TCost,
-  class THelper
+  class THelper,
+  class Hash = AStarTypeSelector::DummyHash
 >
 class AStar
 {
-
 public:
   std::vector<TState> solve(THelper &helper);
 
 private:
-
   class StateCost
   {
   public:
@@ -47,11 +66,12 @@ private:
 template <
   class TState,
   typename TCost,
-  class THelper
+  class THelper,
+  class Hash
 >
-std::vector<TState> AStar<TState, TCost, THelper>::solve(THelper &helper)
+std::vector<TState> AStar<TState, TCost, THelper, Hash>::solve(THelper &helper)
 {
-  std::set<TState> processed;
+  typename AStarTypeSelector::Select<Hash, TState>::Container processed;
   std::vector<StateCost*> to_delete;
   std::priority_queue<StateCost*, std::vector<StateCost*>, CostComparer> to_process;
 
@@ -62,7 +82,10 @@ std::vector<TState> AStar<TState, TCost, THelper>::solve(THelper &helper)
   do
   {
     for (auto &state : helper.possible_states(curr->state))
-      to_process.push(new StateCost(state, curr->f + helper.cost(curr->state, state) + helper.heuristic(state), curr->f + helper.cost(curr->state, state), curr));
+    {
+      TCost f = curr->f + helper.cost(curr->state, state);
+      to_process.push(new StateCost(state, f + helper.heuristic(state), f, curr));
+    }
 
     processed.insert(curr->state);
     to_delete.push_back(curr);

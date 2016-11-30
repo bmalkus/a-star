@@ -21,6 +21,11 @@ struct State2V
   bool operator== (const State2V &nd) const;
 
   friend std::ostream& operator<< (std::ostream &out, State2V &state);
+
+  struct Hasher
+  {
+    size_t operator() (const State2V &s) const;
+  };
 };
 
 #endif

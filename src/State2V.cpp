@@ -1,7 +1,9 @@
+#include <iostream>
+#include <functional>
+
 #include "State2V.h"
 #include "Utils.h"
 #include "AStarOnBoardHelper.h"
-#include <iostream>
 
 State2V::State2V()
 {
@@ -28,6 +30,11 @@ bool State2V::operator== (const State2V &nd) const
 {
   return x == nd.x && y == nd.y
     && Vx == nd.Vx && Vy == nd.Vy;
+}
+
+size_t State2V::Hasher::operator() (const State2V &s) const
+{
+  return 5000*(5000*(100*size_t(s.Vx) + s.Vy) + s.x) + s.y;
 }
 
 template <>
