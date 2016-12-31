@@ -58,6 +58,25 @@ std::vector<State2V> possible_states<State2V>(const AStarOnBoardHelper<State2V> 
   return ret;
 }
 
+#define HEURISTIC 3
+
+#if HEURISTIC == 1
+
+template <>
+int heuristic<State2V>(const State2V &st, const State2V &nd)
+{
+  int diff_x = nd.x - st.x;
+  int diff_y = nd.y - st.y;
+  double res_x = 0.0, res_y = 0.0;
+  int diff_x_pos = (diff_x > 0) * 2 - 1;
+  int diff_y_pos = (diff_y > 0) * 2 - 1;
+  res_x = (-2*st.Vx + diff_x_pos + std::sqrt(4*st.Vx*st.Vx - diff_x_pos * 4*st.Vx + 1 + diff_x_pos * 8*diff_x)) / 2*diff_x_pos;
+  res_y = (-2*st.Vy + diff_y_pos + std::sqrt(4*st.Vy*st.Vy - diff_y_pos * 4*st.Vy + 1 + diff_y_pos * 8*diff_y)) / 2*diff_y_pos;
+  return std::max(std::ceil(res_x), std::ceil(res_y));
+}
+
+#elif HEURISTIC == 2
+
 template <>
 int heuristic<State2V>(const State2V &st, const State2V &nd)
 {
@@ -65,31 +84,93 @@ int heuristic<State2V>(const State2V &st, const State2V &nd)
   int diff_y = nd.y - st.y;
   double res_x = 0.0, res_y = 0.0;
   if (diff_x > 0)
-    res_x = (-2*st.Vx + 1 + sqrt(4*st.Vx*st.Vx - 4*st.Vx + 1 + 8*diff_x)) / 2;
+    res_x = (-2*st.Vx + 1 + std::sqrt(4*st.Vx*st.Vx - 4*st.Vx + 1 + 8*diff_x)) / 2;
   else if (diff_x < 0)
-    res_x = (-2*st.Vx - 1 + sqrt(4*st.Vx*st.Vx + 4*st.Vx + 1 - 8*diff_x)) / -2;
+    res_x = (-2*st.Vx - 1 + std::sqrt(4*st.Vx*st.Vx + 4*st.Vx + 1 - 8*diff_x)) / -2;
   if (diff_y > 0)
-    res_y = (-2*st.Vy + 1 + sqrt(4*st.Vy*st.Vy - 4*st.Vy + 1 + 8*diff_y)) / 2;
+    res_y = (-2*st.Vy + 1 + std::sqrt(4*st.Vy*st.Vy - 4*st.Vy + 1 + 8*diff_y)) / 2;
   else if (diff_y < 0)
-    res_y = (-2*st.Vy - 1 + sqrt(4*st.Vy*st.Vy + 4*st.Vy + 1 - 8*diff_y)) / -2;
+    res_y = (-2*st.Vy - 1 + std::sqrt(4*st.Vy*st.Vy + 4*st.Vy + 1 - 8*diff_y)) / -2;
   return std::max(std::ceil(res_x), std::ceil(res_y));
-
-  // int speed = st.Vx + st.Vy;
-
-  // int distance = diff_x + diff_y;
-  // int distanceInSteps = speed;
-  // int steps = 1;
-
-  // while (true)
-  // {
-    // if (distance <= distanceInSteps)
-    // {
-      // return steps;
-    // }
-    // distanceInSteps = distanceInSteps + steps * 2 + speed;
-    // steps = steps + 1;
-  // }
 }
+
+#elif HEURISTIC == 3
+
+int v2o(int v)
+{
+  return (v * (v-1)) / 2;
+}
+
+int o2v2oSteps(int x)
+{
+  return std::ceil(2 * std::sqrt(x));
+}
+
+int o2vv2oSteps(int x)
+{
+  return std::ceil(std::sqrt(1 + 4*x));
+}
+
+int vo2v2voSteps(int x, int v0)
+{
+  return std::ceil(2 * std::sqrt(x + v0*v0) - v0*v0);
+}
+
+int vo2vv2voSteps(int x, int v0)
+{
+  return std::ceil(std::sqrt(1 + 4*(x + v0*v0)) - 2*v0*v0);
+}
+
+int distanceWhileStoppingFrom(int v)
+{
+  return v2o(v);
+}
+
+int minStepsToGoThrough(int x)
+{
+  return std::min(o2v2oSteps(x), o2vv2oSteps(x));
+}
+
+int minStepsToGoThroughStartingAtVo(int x, int v0)
+{
+  return std::min(vo2v2voSteps(x, v0), vo2vv2voSteps(x, v0));
+}
+
+int calculateMinNumberOfSteps(int dist, int speedTowardsTarget)
+{
+  if (speedTowardsTarget < 0)
+  {
+    int speedAwayFromTarget = -speedTowardsTarget;
+    return minStepsToGoThrough(distanceWhileStoppingFrom(speedAwayFromTarget) + dist) + speedAwayFromTarget;
+  }
+  else
+  {
+    int distanceWhileStoppingFromStartSpeed = distanceWhileStoppingFrom(speedTowardsTarget);
+    if (distanceWhileStoppingFromStartSpeed > dist)
+      return minStepsToGoThrough(distanceWhileStoppingFromStartSpeed - dist) + speedTowardsTarget;
+    else
+      return minStepsToGoThroughStartingAtVo(dist - distanceWhileStoppingFromStartSpeed, speedTowardsTarget) + speedTowardsTarget;
+  }
+}
+
+int calculateMinNumberOfSteps(int start, int speed, int end)
+{
+  int dist = std::abs(start - end);
+  int speedTowardsTarget = speed;
+  if (end < start)
+    speedTowardsTarget = -speedTowardsTarget;
+  return calculateMinNumberOfSteps(dist, speedTowardsTarget);
+}
+
+template <>
+int heuristic<State2V>(const State2V &st, const State2V &nd)
+{
+  int minStepsX = calculateMinNumberOfSteps(st.x, st.Vx, nd.x);
+  int minStepsY = calculateMinNumberOfSteps(st.y, st.Vy, nd.y);
+  return std::max(minStepsX, minStepsY);
+}
+
+#endif
 
 std::ostream& operator<< (std::ostream &out, State2V &state)
 {

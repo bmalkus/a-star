@@ -98,10 +98,9 @@ std::vector<TState> AStar<TState, TCost, THelper, Hash>::solve(THelper &helper)
       }
       else
         break;
+
       if (processed.find(curr->state) == processed.end())
-      {
         break;
-      }
       else
         delete curr;
     } while (true);
