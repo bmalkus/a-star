@@ -57,9 +57,7 @@ std::vector<State2V> possible_states<State2V>(const AStarOnBoardHelper<State2V> 
   return ret;
 }
 
-#define HEURISTIC 3
-
-#if HEURISTIC == 1
+#if !defined HEURISTIC_1_CAR ||  HEURISTIC_1_CAR == 1
 
 template <>
 int heuristic<State2V>(const State2V &st, const State2V &nd)
@@ -74,7 +72,7 @@ int heuristic<State2V>(const State2V &st, const State2V &nd)
   return std::max(std::ceil(res_x), std::ceil(res_y));
 }
 
-#elif HEURISTIC == 2
+#elif HEURISTIC_1_CAR == 2
 
 template <>
 int heuristic<State2V>(const State2V &st, const State2V &nd)
@@ -93,7 +91,7 @@ int heuristic<State2V>(const State2V &st, const State2V &nd)
   return std::max(std::ceil(res_x), std::ceil(res_y));
 }
 
-#elif HEURISTIC == 3
+#elif HEURISTIC_1_CAR == 3
 
 int v2o(int v)
 {
@@ -170,8 +168,6 @@ int heuristic<State2V>(const State2V &st, const State2V &nd)
 }
 
 #endif
-
-#undef HEURISTIC
 
 std::ostream& operator<< (std::ostream &out, const State2V &state)
 {

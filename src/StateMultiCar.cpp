@@ -124,9 +124,7 @@ std::vector<StateMultiCar> AStarMultiCarOnBoardHelper::possible_states(const Sta
   return ret;
 }
 
-#define HEURISTIC 1
-
-#if HEURISTIC == 1
+#if !defined HEURISTIC_N_CARS ||  HEURISTIC_N_CARS == 1
 
 int AStarMultiCarOnBoardHelper::heuristic(const StateMultiCar &state) const
 {
@@ -138,7 +136,7 @@ int AStarMultiCarOnBoardHelper::heuristic(const StateMultiCar &state) const
   return res;
 }
 
-#elif HEURISTIC == 2
+#elif HEURISTIC_N_CARS == 2
 
 int AStarMultiCarOnBoardHelper::heuristic(const StateMultiCar &state) const
 {
@@ -160,8 +158,6 @@ int AStarMultiCarOnBoardHelper::heuristic(const StateMultiCar &state) const
 }
 
 #endif
-
-#undef HEURISTIC
 
 int AStarMultiCarOnBoardHelper::cost(const StateMultiCar &/*from*/, const StateMultiCar &/*to*/) const
 {

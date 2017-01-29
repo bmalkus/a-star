@@ -11,18 +11,11 @@
 
 #include "AStarOnBoardHelper.h"
 #include "AStar.h"
-#include "State.h"
 #include "State2V.h"
 #include "StateMultiCar.h"
 
 template <class TState> // {{{ create_state
 TState create_state(int x, int y);
-
-template <>
-State create_state<State>(int x, int y)
-{
-  return State(x, y, 0);
-}
 
 template <>
 State2V create_state<State2V>(int x, int y)
