@@ -9,6 +9,8 @@ flags = [
   'c++',
   '-I',
   './include'
+  # '-I',
+  # '/lib64/openmpi/share/vampirtrace'
 ]
 
 SOURCE_EXTENSIONS = [ '.cpp', '.cxx', '.cc', '.c', '.m', '.mm' ]

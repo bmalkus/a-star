@@ -13,6 +13,7 @@
 #include "AStar.h"
 #include "State.h"
 #include "State2V.h"
+#include "StateMultiCar.h"
 
 template <class TState> // {{{ create_state
 TState create_state(int x, int y);
@@ -56,6 +57,37 @@ AStarOnBoardHelper<TState> read_board(std::istream &&in)
   }
   return AStarOnBoardHelper<TState>(start, end, w, h, fields);
 }
+
+AStarMultiCarOnBoardHelper read_board(std::istream &&in)
+{
+  int w, h;
+  short **fields;
+  StateMultiCar start;
+  State2V end;
+
+  in >> w >> h;
+
+  fields = new short*[w];
+  for (int i = 0; i < w; ++i)
+    fields[i] = new short[h];
+
+  std::vector<State2V> cars;
+
+  for (int j = 0; j < h; ++j)
+  {
+    for (int i = 0; i < w; ++i)
+    {
+      in >> fields[i][j];
+      if (fields[i][j] == 2)
+        cars.emplace_back(create_state<State2V>(i, j));
+      if (fields[i][j] == 3)
+        end = create_state<State2V>(i, j);
+    }
+  }
+
+  return AStarMultiCarOnBoardHelper(StateMultiCar(std::move(cars)),
+                                    end, w, h, fields);
+}
 // }}}
 
 const char char_map[] = ".@BEX";
@@ -79,19 +111,22 @@ void write_board_to_stdout(AStarOnBoardHelper<TState> &helper, bool fancy = fals
 }
 // }}}
 
-using S = State2V;
-
 template <class TState> // {{{ print_solution
-void print_solution(std::string fname, double time, std::vector<TState> solution, AStarOnBoardHelper<TState> &helper)
+void print_solution(std::string fname,
+                    double time,
+                    std::vector<TState> solution,
+                    AStarMultiCarOnBoardHelper &helper)
 {
   std::cerr << "==============================================\n"
     << "File name: " << fname.substr(fname.rfind('/') + 1) << "\n"
     << "Execution time: " << std::fixed << std::setprecision(6) << time << " s\n"
     << "Heuristic function calls: " << helper.heuristic_calls << "\n"
     << "Number of steps: " << solution.size() - 1 << "\n"
-    << "Solution:\n";
+    << "Number of cars: " << solution[0]._cars.size() << "\n";
+  std::cerr << "Solution:\n";
+  std::cout << solution.size() << " " << solution[0]._cars.size() << "\n";
   for (auto s : solution)
-    std::cerr << s << "\n";
+    std::cout << s << "\n";
   std::cerr << "==============================================\n";
 }
 // }}}
@@ -99,6 +134,9 @@ void print_solution(std::string fname, double time, std::vector<TState> solution
 using std::chrono::steady_clock;
 using std::chrono::duration;
 using std::chrono::duration_cast;
+
+using S = StateMultiCar;
+using Helper = AStarMultiCarOnBoardHelper;
 
 int main(int argc, char *argv[])
 {
@@ -108,8 +146,8 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  AStarOnBoardHelper<S> helper = read_board<S>(std::fstream(argv[1]));
-  AStar<S, int, AStarOnBoardHelper<S>, S::Hasher> astar;
+  Helper helper = read_board(std::fstream(argv[1]));
+  AStar<S, int, Helper> astar;
 
   auto t1 = steady_clock::now();
 
@@ -119,10 +157,7 @@ int main(int argc, char *argv[])
 
   print_solution(argv[1], d.count(), track, helper);
 
-  int cnt = 4;
-  for (auto s : track)
-    if (helper.fields[s.x][s.y] == 0)
-      helper.fields[s.x][s.y] = cnt++;
-
-  // write_board_to_stdout(helper);
+  for (int i = 0; i < helper.w; ++i)
+    delete[] helper.fields[i];
+  delete[] helper.fields;
 }

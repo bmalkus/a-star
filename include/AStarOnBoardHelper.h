@@ -23,9 +23,10 @@ private:
 public:
   short **fields;
   int w, h;
-  int heuristic_calls;
+  mutable int heuristic_calls;
 
   AStarOnBoardHelper(TState start, TState end, int w, int h, short **fields);
+  AStarOnBoardHelper(int w, int h, short **fields);
 
   TState get_start() const;
 
@@ -33,9 +34,11 @@ public:
 
   std::vector<TState> possible_states(const TState &state) const;
 
-  int heuristic(const TState &state);
+  int heuristic(const TState &state) const;
 
   int cost(const TState &from, const TState &to) const;
+
+  void iter_begin(TState &/*state*/) const {}
 
 private:
   bool is_legal_field(int x, int y) const;
@@ -47,6 +50,13 @@ private:
 template <class TState>
 AStarOnBoardHelper<TState>::AStarOnBoardHelper(TState start, TState end, int w, int h, short **fields):
   start(start), end(end), fields(fields), w(w), h(h), heuristic_calls(0)
+{
+  // empty
+}
+
+template <class TState>
+AStarOnBoardHelper<TState>::AStarOnBoardHelper(int w, int h, short **fields):
+  fields(fields), w(w), h(h), heuristic_calls(0)
 {
   // empty
 }
@@ -70,14 +80,14 @@ std::vector<TState> AStarOnBoardHelper<TState>::possible_states(const TState &st
 }
 
 template <class TState>
-int AStarOnBoardHelper<TState>::heuristic(const TState &state)
+int AStarOnBoardHelper<TState>::heuristic(const TState &state) const
 {
   ++heuristic_calls;
   return ::heuristic<TState>(state, end);
 }
 
 template <class TState>
-int AStarOnBoardHelper<TState>::cost(const TState &from, const TState &to) const
+int AStarOnBoardHelper<TState>::cost(const TState &/*from*/, const TState &/*to*/) const
 {
   return 1;
 }
@@ -86,8 +96,9 @@ template <class TState>
 bool AStarOnBoardHelper<TState>::is_legal_field(int x, int y) const
 {
   bool on_board = x >= 0 && x < w && y >= 0 && y < h;
-  bool not_border = fields[x][y] != 1;
-  return on_board && not_border;
+  if (!on_board)
+    return false;
+  return fields[x][y] != 1;
 }
 
 #endif

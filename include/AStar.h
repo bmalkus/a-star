@@ -8,7 +8,9 @@
 #include <queue>
 #include <algorithm>
 
-#include <vector>
+#ifdef PARALLEL_HEURISTIC
+#include <omp.h>
+#endif
 
 namespace AStarTypeSelector
 {
@@ -81,11 +83,37 @@ std::vector<TState> AStar<TState, TCost, THelper, Hash>::solve(THelper &helper)
 
   do
   {
+
+#ifndef PARALLEL_HEURISTIC
+
+    helper.iter_begin(curr->state);
     for (auto &state : helper.possible_states(curr->state))
     {
       TCost f = curr->f + helper.cost(curr->state, state);
       to_process.push(new StateCost(state, f + helper.heuristic(state), f, curr));
     }
+
+#else
+
+    helper.iter_begin(curr->state);
+    auto possible = helper.possible_states(curr->state);
+    int states_num = possible.size();
+    std::vector<int> heuristics;
+    heuristics.resize(states_num);
+
+#pragma omp parallel for schedule(dynamic)
+    for (int i = 0; i < states_num; ++i)
+    {
+      heuristics[i] = helper.heuristic(possible[i]);
+    }
+
+    for (int i = 0; i < states_num; ++i)
+    {
+      TCost f = curr->f + helper.cost(curr->state, possible[i]);
+      to_process.push(new StateCost(possible[i], f + heuristics[i], f, curr));
+    }
+
+#endif
 
     processed.insert(curr->state);
     to_delete.push_back(curr);
@@ -97,7 +125,7 @@ std::vector<TState> AStar<TState, TCost, THelper, Hash>::solve(THelper &helper)
         to_process.pop();
       }
       else
-        break;
+        return std::vector<TState>();
 
       if (processed.find(curr->state) == processed.end())
         break;
@@ -105,6 +133,8 @@ std::vector<TState> AStar<TState, TCost, THelper, Hash>::solve(THelper &helper)
         delete curr;
     } while (true);
   } while(!helper.is_end(curr->state));
+
+  auto curr_orig = curr;
 
   std::vector<TState> ret;
   do
@@ -114,6 +144,12 @@ std::vector<TState> AStar<TState, TCost, THelper, Hash>::solve(THelper &helper)
 
   std::reverse(ret.begin(), ret.end());
 
+  delete curr_orig;
+  while (!to_process.empty())
+  {
+    delete to_process.top();
+    to_process.pop();
+  }
   for (auto p : to_delete)
     delete p;
 

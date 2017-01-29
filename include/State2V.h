@@ -20,7 +20,7 @@ struct State2V
   bool operator< (const State2V &nd) const;
   bool operator== (const State2V &nd) const;
 
-  friend std::ostream& operator<< (std::ostream &out, State2V &state);
+  friend std::ostream& operator<< (std::ostream &out, const State2V &state);
 
   struct Hasher
   {

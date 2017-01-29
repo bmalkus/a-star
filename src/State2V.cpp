@@ -2,7 +2,6 @@
 #include <functional>
 
 #include "State2V.h"
-#include "Utils.h"
 #include "AStarOnBoardHelper.h"
 
 State2V::State2V()
@@ -172,9 +171,12 @@ int heuristic<State2V>(const State2V &st, const State2V &nd)
 
 #endif
 
-std::ostream& operator<< (std::ostream &out, State2V &state)
+#undef HEURISTIC
+
+std::ostream& operator<< (std::ostream &out, const State2V &state)
 {
-  out << "position = " << state.x << ", " << state.y << "; "
-    << "speed = " << state.Vx << ", " << state.Vy;
+  // out << "position = " << state.x << ", " << state.y << "; "
+  //   << "speed = " << state.Vx << ", " << state.Vy;
+  out << state.x << " " << state.y << " " << state.Vx << " " << state.Vy;
   return out;
 }

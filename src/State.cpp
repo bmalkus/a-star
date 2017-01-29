@@ -1,5 +1,4 @@
 #include "State.h"
-#include "Utils.h"
 #include "AStarOnBoardHelper.h"
 
 State::State()

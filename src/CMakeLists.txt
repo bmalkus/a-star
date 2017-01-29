@@ -6,5 +6,6 @@ add_executable("a-star"
   Main.cpp
   State.cpp
   State2V.cpp
+  StateMultiCar.cpp
   )
 
